@@ -36,7 +36,7 @@
 @property (nonatomic,assign,readonly) NSInteger allLevel;
 
 @property (nonatomic,assign) CGFloat unitLenght;
-@property (nonatomic,assign) CGFloat originX;
+
 
 @end
 
@@ -82,7 +82,6 @@
     //0--0--0--0--0--0--0
     // "-" 12个等级
     NSInteger allLenght = self.selectedBgColorImageView.frame.size.width;
-    _originX = self.selectedBgColorImageView.frame.origin.x+3;
     _unitLenght = (allLenght/(allLevels * 2 - 2)); //7个等级分成12份
     
     dispatch_apply(self.pointViewLists.count, dispatch_get_global_queue(0, 0), ^(size_t index) {
@@ -180,11 +179,12 @@
     CGPoint location = [touch locationInView:self];
     
     CGFloat touchMoveX = location.x;
+    CGFloat originX = self.selectedBgColorImageView.frame.origin.x;
     
     for (int i = 0; i < _allLevel; i++) {
         NSInteger level = (i*2+1);
-        if (touchMoveX <= _originX + _unitLenght * level) {
-            touchMoveX = _originX + _unitLenght * (level-1);
+        if (touchMoveX <= originX + _unitLenght * level) {
+            touchMoveX = originX + _unitLenght * (level-1);
             NSInteger nowLevel = (((long)level-1)/2)+1;
             
             return nowLevel;
