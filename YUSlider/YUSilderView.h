@@ -6,7 +6,14 @@
 //  Copyright © 2017年 于博洋. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+
+typedef NS_ENUM(NSInteger, YUSilderViewType) {
+    YUSilderViewTypeNone = 0, //默认带刻度
+    YUSilderViewTypeLong, //不带刻度
+    YUSilderViewTypeDouble, //2个滑块
+};
 
 @protocol YUSilderViewDelegate <NSObject>
 
@@ -20,11 +27,13 @@
 @property (nonatomic,weak) id<YUSilderViewDelegate> silderViewDelegate;
 
 /**
- * method 初始化等级方法
+ * method 初始化等级方法(带刻度)
  * parameter 一共分为多少个等级 必传参数
  * parameter 初始等级 必传参数 等级1开始
  */
-- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel;
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type;
+
+
 
 
 /**

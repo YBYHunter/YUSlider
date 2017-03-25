@@ -5,8 +5,13 @@
 //  Created by 于博洋 on 2017/2/28.
 //  Copyright © 2017年 于博洋. All rights reserved.
 //
-
 #import "YUSilderView.h"
+
+//带刻度状态 刻度的宽高
+static CGFloat const NonePointSizeWidth = 10;
+
+//刻度2测的 间隔
+static CGFloat const BothSidesInterval = 15;
 
 @interface YUSilderView ()
 
@@ -31,6 +36,11 @@
 @property (nonatomic,strong) UIImageView * sliderImageView;
 
 /**
+ * method 上面拖动的点
+ */
+@property (nonatomic,strong) UIImageView * sliderImageViewMax;
+
+/**
  * method 当前等级
  */
 @property (nonatomic,assign,readonly) NSInteger allLevel;
@@ -47,7 +57,9 @@
 {
     self = [super init];
     if (self) {
-        
+        [self addSubview:self.selectedBgColorImageView];
+        [self addSubview:self.notSelectedBgColorImageView];
+        [self addSubview:self.sliderImageView];
     }
     return self;
 }
@@ -67,38 +79,60 @@
 
 #pragma mark - 初始化方法
 
-- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel {
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type {
     
     CGFloat sliderWidth = 20;
     CGFloat sliderHeight = 20;
     _allLevel = allLevels;
     
+    
     self.selectedBgColorImageView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
-    
     self.notSelectedBgColorImageView.frame = self.selectedBgColorImageView.frame;
-    
     self.sliderImageView.frame = CGRectMake(0, (self.frame.size.height - sliderHeight)/2, sliderWidth, sliderHeight);
     
-    //0--0--0--0--0--0--0
-    // "-" 12个等级
-    NSInteger allLenght = self.selectedBgColorImageView.frame.size.width;
+    if (type == YUSilderViewTypeNone || type == YUSilderViewTypeLong) {
+        [self setSilderViewWithTypeNone:allLevels initialLevel:initialLevel type:type];
+    }
+    else if (type == YUSilderViewTypeDouble) {
+//        [self setSilderViewWithTypeLong:allLevels initialLevel:initialLevel ];
+    }
+
+}
+
+//
+- (void)setSilderViewWithTypeNone:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type {
+    //添加刻度点
+    [self addPointImageView:allLevels type:type];
+    
+    
+    //0--0--0
+    // "-" 4个等级
+    UIImageView * pointImageView = self.pointViewLists[0];
+    CGFloat allLenght = self.selectedBgColorImageView.frame.size.width - BothSidesInterval * 2 - pointImageView.frame.size.width;
     _unitLenght = (allLenght/(allLevels * 2 - 2)); //7个等级分成12份
     
-    dispatch_apply(self.pointViewLists.count, dispatch_get_global_queue(0, 0), ^(size_t index) {
-        UIImageView * pointImageView = self.pointViewLists[index];
-        NSInteger num = pointImageView.tag - 3000;
-        CGFloat pointWidth = pointImageView.frame.size.width;
-        CGFloat pointHeight = pointImageView.frame.size.height;
+    //初始化刻度frame
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(queue, ^{
         
-        CGRect rect = CGRectMake(num * (_unitLenght * 2), (self.frame.size.height - pointHeight)/2, pointWidth, pointHeight);
+        dispatch_apply(self.pointViewLists.count, dispatch_get_global_queue(0, 0), ^(size_t index) {
+            UIImageView * pointImageView = self.pointViewLists[index];
+            NSInteger num = pointImageView.tag - 3000;
+            CGFloat pointWidth = pointImageView.frame.size.width;
+            CGFloat pointHeight = pointImageView.frame.size.height;
+            CGFloat pointX = num * (_unitLenght * 2) + BothSidesInterval;
+            
+            CGRect rect = CGRectMake(pointX, (self.frame.size.height - pointHeight)/2, pointWidth, pointHeight);
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                pointImageView.frame = rect;
+            });
+        });
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            pointImageView.frame = rect;
+            [self movePointImageView:initialLevel animation:NO];
         });
     });
-    
-    
-    [self movePointImageView:initialLevel animation:NO];
 }
 
 #pragma mark - 滑块移动位置方法（动画）
@@ -154,6 +188,14 @@
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self];
     
+    if (location.x <= 0) {
+        location.x = 0;
+    }
+    
+    if (location.x >= self.frame.size.width) {
+        location.x = self.frame.size.width;
+    }
+    
     CGPoint point = CGPointMake(location.x, self.sliderImageView.center.y);
     self.sliderImageView.center = point;
     
@@ -178,19 +220,30 @@
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self];
     
-    CGFloat touchMoveX = location.x;
-    CGFloat originX = self.selectedBgColorImageView.frame.origin.x;
+    CGFloat touchMoveX = location.x ;
+    CGFloat originX = self.selectedBgColorImageView.frame.origin.x + BothSidesInterval;
+    
+    //松手最大
+    if (touchMoveX >= self.frame.size.width) {
+        return _allLevel;
+    }
+    
+    //松手最小
+    if (touchMoveX <= 0) {
+        return 1;
+    }
     
     for (int i = 0; i < _allLevel; i++) {
         NSInteger level = (i*2+1);
+        
         if (touchMoveX <= originX + _unitLenght * level) {
             touchMoveX = originX + _unitLenght * (level-1);
             NSInteger nowLevel = (((long)level-1)/2)+1;
-            
             return nowLevel;
         }
     }
     
+    //出错了自动校验
     return 1;
 }
 
@@ -205,6 +258,31 @@
     
 }
 
+- (void)addPointImageView:(NSInteger)allLevels type:(YUSilderViewType)type {
+    for (int i = 0; i < allLevels; i++) {
+        UIImageView * pointImageView = [[UIImageView alloc] init];
+
+        CGFloat pointSizeWidth = NonePointSizeWidth;
+        if (type == YUSilderViewTypeLong) {
+            pointSizeWidth = 1;
+            pointImageView.backgroundColor = [UIColor clearColor];
+        }
+        else if (type == YUSilderViewTypeNone) {
+            pointImageView.backgroundColor = [UIColor yellowColor];
+        }
+        //设置pointImageView的size
+        pointImageView.frame = CGRectMake(0, 0, pointSizeWidth, pointSizeWidth);
+        pointImageView.tag = 3000 + i;
+        
+        //添加到数组中
+        [self.pointViewLists addObject:pointImageView];
+        
+        if (type == YUSilderViewTypeNone) {
+            //在背景色上面
+            [self insertSubview:pointImageView aboveSubview:self.notSelectedBgColorImageView];
+        }
+    }
+}
 
 
 
@@ -231,19 +309,6 @@
 - (NSMutableArray *)pointViewLists {
     if (_pointViewLists == nil) {
         _pointViewLists = [[NSMutableArray alloc] init];
-        
-        for (int i = 0; i < 7; i++) {
-            UIImageView * pointImageView = [[UIImageView alloc] init];
-            pointImageView.frame = CGRectMake(0, 0, 10, 10);
-            pointImageView.tag = 3000 + i;
-            pointImageView.backgroundColor = [UIColor yellowColor];
-            [_pointViewLists addObject:pointImageView];
-            //在图层最上面
-//            [self addSubview:pointImageView];
-            //在背景色上面
-            [self insertSubview:pointImageView aboveSubview:self.notSelectedBgColorImageView];
-        }
-        
     }
     return _pointViewLists;
 }
