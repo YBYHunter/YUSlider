@@ -31,7 +31,7 @@
 @property (nonatomic,assign) BOOL isOpenClickSlide;
 
 /**
- * method 初始化等级方法
+ * 单滑块初始化等级方法
  * allLevels 一共分为多少个等级 必传参数
  * isShowPoint 是否显示刻度
  * initialLevel 初始等级 必传参数 等级1开始
@@ -40,6 +40,12 @@
 
 
 
+/**
+ * 双滑块初始化等级方法
+ * allLevels 一共分为多少个等级 必传参数
+ * isShowPoint 是否显示刻度
+ * initialLevel 初始等级 必传参数 等级1开始
+ */
 - (void)setupSilderViewWithAllLevels:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint initialLevel:(NSInteger)initialLevel maxInitialLevel:(NSInteger)maxInitialLevel;
 
 

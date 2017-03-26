@@ -28,8 +28,6 @@ static CGFloat const MinimumLevelBetweenSliders = 10;
 
 
 
-
-
 @interface YUSilderView ()<UIGestureRecognizerDelegate>
 
 //method 左滑块选中的颜色
@@ -148,8 +146,7 @@ static CGFloat const MinimumLevelBetweenSliders = 10;
 
 
 
-
-
+//初始化刻度点位置
 - (void)setSilderViewWithTypeNone:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel isShowPoint:(BOOL)isShowPoint {
     //添加刻度点
     [self addPointImageView:allLevels isShowPoint:isShowPoint];
@@ -277,6 +274,7 @@ static CGFloat const MinimumLevelBetweenSliders = 10;
 }
 
 #pragma mark - handleTableviewCellLongPressed
+
 - (void)handleTableviewCellLongPressed:(UILongPressGestureRecognizer *)gestureRecognizer {
     
     CGPoint point = [gestureRecognizer locationInView:gestureRecognizer.view.superview];
