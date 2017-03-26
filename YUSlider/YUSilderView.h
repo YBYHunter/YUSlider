@@ -9,15 +9,12 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, YUSilderViewType) {
-    YUSilderViewTypeNone = 0, //默认带刻度
-    YUSilderViewTypeLong, //不带刻度
-    YUSilderViewTypeDouble, //2个滑块
-};
-
 @protocol YUSilderViewDelegate <NSObject>
 
-- (void)selectSilderViewWithLeve:(NSInteger)leve;
+//只要值改变就会执行
+- (void)silderViewValuesChangeWithMinleve:(NSInteger)minLeve silderView:(UIView *)silderView;
+
+- (void)silderViewValuesChangeWithMaxleve:(NSInteger)maxLeve silderView:(UIView *)silderView;
 
 @end
 
@@ -27,21 +24,25 @@ typedef NS_ENUM(NSInteger, YUSilderViewType) {
 @property (nonatomic,weak) id<YUSilderViewDelegate> silderViewDelegate;
 
 /**
- * method 初始化等级方法(带刻度)
- * parameter 一共分为多少个等级 必传参数
- * parameter 初始等级 必传参数 等级1开始
+ * isOpenClickSlide 是否开启点击滑动功能
+ * 单个滑块默认开启
+ * 2个滑块不可开启
  */
-- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type;
-
-
-
+@property (nonatomic,assign) BOOL isOpenClickSlide;
 
 /**
- * method 移动滑块方法
- * leve 移动到第几级 1级开始
- * animation 是否显示动画效果
+ * method 初始化等级方法
+ * allLevels 一共分为多少个等级 必传参数
+ * isShowPoint 是否显示刻度
+ * initialLevel 初始等级 必传参数 等级1开始
  */
-- (void)movePointImageView:(NSInteger)leve animation:(BOOL)animation;
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint initialLevel:(NSInteger)initialLevel;
+
+
+
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint initialLevel:(NSInteger)initialLevel maxInitialLevel:(NSInteger)maxInitialLevel;
+
+
 
 
 

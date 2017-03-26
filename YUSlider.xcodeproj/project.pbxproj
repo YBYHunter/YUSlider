@@ -520,6 +520,7 @@
 				6BE0A8881E65872F00530394 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		6BE0A8891E65872F00530394 /* Build configuration list for PBXNativeTarget "YUSliderTests" */ = {
 			isa = XCConfigurationList;
@@ -528,6 +529,7 @@
 				6BE0A88B1E65872F00530394 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		6BE0A88C1E65872F00530394 /* Build configuration list for PBXNativeTarget "YUSliderUITests" */ = {
 			isa = XCConfigurationList;
@@ -536,6 +538,7 @@
 				6BE0A88E1E65872F00530394 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

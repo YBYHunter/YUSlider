@@ -7,44 +7,59 @@
 //
 #import "YUSilderView.h"
 
-//带刻度状态 刻度的宽高
+/*
+ 调节参数
+ */
+
+//刻度的宽高
 static CGFloat const NonePointSizeWidth = 10;
 
-//刻度2测的 间隔
+//刻度2边的间隔
 static CGFloat const BothSidesInterval = 15;
 
-@interface YUSilderView ()
+//滑块大小
+static CGFloat const SliderWidth = 20;
 
-/**
- * method 选中的背景色
- */
-@property (nonatomic,strong) UIImageView * selectedBgColorImageView;
+//滑块触摸区域宽
+static CGFloat const SliderTouchWidth = 25;
 
-/**
- * method 未选中的背景色
- */
-@property (nonatomic,strong) UIImageView * notSelectedBgColorImageView;
+//两滑块之间最小等级
+static CGFloat const MinimumLevelBetweenSliders = 10;
 
-/**
- * method 上面的刻度
- */
+
+
+
+
+@interface YUSilderView ()<UIGestureRecognizerDelegate>
+
+//method 左滑块选中的颜色
+@property (nonatomic,strong) UIImageView * leftSelectedBgColorImageView;
+
+//method 右滑块选中的颜色
+@property (nonatomic,strong) UIImageView * rightSelectedBgColorImageView;
+
+//method 刻度块
 @property (nonatomic,strong) NSMutableArray * pointViewLists;
 
-/**
- * method 上面拖动的点
- */
+//method 刻度线（不显示刻度时需要）
+@property (nonatomic,strong) UIView * longTypeLineView;
+
+//method 左滑块（触摸区域）
+@property (nonatomic,strong) UIView * sliderView;
+
+//method 右滑块（触摸区域）
+@property (nonatomic,strong) UIView * sliderViewMax;
+
+//method 左滑块
 @property (nonatomic,strong) UIImageView * sliderImageView;
 
-/**
- * method 上面拖动的点
- */
-@property (nonatomic,strong) UIImageView * sliderImageViewMax;
+//method 右滑块
+@property (nonatomic,strong) UIImageView * sliderMaxImageView;
 
-/**
- * method 当前等级
- */
+//method 最大等级
 @property (nonatomic,assign,readonly) NSInteger allLevel;
 
+//每个刻度之间的间隔 0--0--0  “- 为 unitLenght”
 @property (nonatomic,assign) CGFloat unitLenght;
 
 
@@ -57,9 +72,7 @@ static CGFloat const BothSidesInterval = 15;
 {
     self = [super init];
     if (self) {
-        [self addSubview:self.selectedBgColorImageView];
-        [self addSubview:self.notSelectedBgColorImageView];
-        [self addSubview:self.sliderImageView];
+
     }
     return self;
 }
@@ -69,46 +82,82 @@ static CGFloat const BothSidesInterval = 15;
     self = [super initWithFrame:frame];
     if (self) {
         
-        [self addSubview:self.selectedBgColorImageView];
-        [self addSubview:self.notSelectedBgColorImageView];
-        [self addSubview:self.sliderImageView];
+        [self addSubview:self.rightSelectedBgColorImageView];
+        [self addSubview:self.leftSelectedBgColorImageView];
+        [self addSubview:self.longTypeLineView];
+        [self addSubview:self.sliderView];
+        [self addSubview:self.sliderViewMax];
+        
+        [self.sliderView addSubview:self.sliderImageView];
+        [self.sliderViewMax addSubview:self.sliderMaxImageView];
+        
+        self.backgroundColor = [UIColor blackColor];
         
     }
     return self;
 }
 
+#pragma mark - setter
+
+- (void)setIsOpenClickSlide:(BOOL)isOpenClickSlide {
+    _isOpenClickSlide = isOpenClickSlide;
+    
+    self.sliderView.userInteractionEnabled = !isOpenClickSlide;
+    self.sliderViewMax.userInteractionEnabled = !isOpenClickSlide;
+}
+
 #pragma mark - 初始化方法
 
-- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type {
+//双滑块初始化
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint initialLevel:(NSInteger)initialLevel maxInitialLevel:(NSInteger)maxInitialLevel {
     
-    CGFloat sliderWidth = 20;
-    CGFloat sliderHeight = 20;
+    [self setupSilderViewWithAllLevels:allLevels isShowPoint:isShowPoint initialLevel:initialLevel];
+    //不可开启
+    self.isOpenClickSlide = NO;
+    self.sliderViewMax.hidden = NO;
+    self.rightSelectedBgColorImageView.hidden = NO;
+    self.sliderViewMax.frame = CGRectMake(self.frame.size.width - BothSidesInterval - self.sliderView.frame.size.width, 0, self.sliderView.frame.size.width, self.frame.size.height);
+    self.sliderMaxImageView.center = CGPointMake(self.sliderViewMax.frame.size.width/2, self.sliderViewMax.frame.size.height/2);
+    
+}
+
+//单滑块初始化
+- (void)setupSilderViewWithAllLevels:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint initialLevel:(NSInteger)initialLevel {
+    //默认开启
+    self.isOpenClickSlide = YES;
+    self.sliderViewMax.hidden = YES;
+    self.rightSelectedBgColorImageView.hidden = YES;
+    
     _allLevel = allLevels;
     
+    self.leftSelectedBgColorImageView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    self.rightSelectedBgColorImageView.frame = self.leftSelectedBgColorImageView.frame;
     
-    self.selectedBgColorImageView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
-    self.notSelectedBgColorImageView.frame = self.selectedBgColorImageView.frame;
-    self.sliderImageView.frame = CGRectMake(0, (self.frame.size.height - sliderHeight)/2, sliderWidth, sliderHeight);
+    self.sliderView.frame = CGRectMake(BothSidesInterval, 0, SliderTouchWidth, self.frame.size.height);
+    self.sliderImageView.center = CGPointMake(self.sliderView.frame.size.width/2, self.sliderView.frame.size.height/2);
     
-    if (type == YUSilderViewTypeNone || type == YUSilderViewTypeLong) {
-        [self setSilderViewWithTypeNone:allLevels initialLevel:initialLevel type:type];
+    if (!isShowPoint) {
+        self.longTypeLineView.frame = CGRectMake(BothSidesInterval, (self.frame.size.height - 1)/2, self.frame.size.width - BothSidesInterval * 2, 1);
+        self.longTypeLineView.hidden = NO;
     }
-    else if (type == YUSilderViewTypeDouble) {
-//        [self setSilderViewWithTypeLong:allLevels initialLevel:initialLevel ];
-    }
+    
+    
+    [self setSilderViewWithTypeNone:allLevels initialLevel:initialLevel isShowPoint:isShowPoint];
 
 }
 
-//
-- (void)setSilderViewWithTypeNone:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel type:(YUSilderViewType)type {
+
+
+
+
+- (void)setSilderViewWithTypeNone:(NSInteger)allLevels initialLevel:(NSInteger)initialLevel isShowPoint:(BOOL)isShowPoint {
     //添加刻度点
-    [self addPointImageView:allLevels type:type];
-    
+    [self addPointImageView:allLevels isShowPoint:isShowPoint];
     
     //0--0--0
     // "-" 4个等级
     UIImageView * pointImageView = self.pointViewLists[0];
-    CGFloat allLenght = self.selectedBgColorImageView.frame.size.width - BothSidesInterval * 2 - pointImageView.frame.size.width;
+    CGFloat allLenght = self.leftSelectedBgColorImageView.frame.size.width - BothSidesInterval * 2 - pointImageView.frame.size.width;
     _unitLenght = (allLenght/(allLevels * 2 - 2)); //7个等级分成12份
     
     //初始化刻度frame
@@ -130,44 +179,54 @@ static CGFloat const BothSidesInterval = 15;
         });
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self movePointImageView:initialLevel animation:NO];
+            [self moveToPointImageView:initialLevel animation:NO sliderView:self.sliderView];
         });
     });
 }
 
-#pragma mark - 滑块移动位置方法（动画）
+#pragma mark - 滑块移动到刻度点
 
-- (void)movePointImageView:(NSInteger)leve animation:(BOOL)animation {
+- (void)moveToPointImageView:(NSInteger)leve animation:(BOOL)animation sliderView:(UIView *)sliderView {
     
     UIImageView * pointImageView = self.pointViewLists[leve - 1];
     CGFloat sliderCenterX = pointImageView.center.x;
     
     if (animation) {
-        /*
-         usingSpringWithDamping 的范围为 0.0f 到 1.0f ，数值越小「弹簧」的振动效果越明显。
-         initialSpringVelocity 则表示初始的速度，数值越大一开始移动越快，
-         值得注意的是，初始速度取值较高而时间较短时，也会出现反弹情况。
-         */
         [UIView animateWithDuration:0.25 delay:0 usingSpringWithDamping:0.6 initialSpringVelocity:0.6 options:UIViewAnimationOptionCurveLinear animations:^{
             
-            self.sliderImageView.center = CGPointMake(sliderCenterX, self.sliderImageView.center.y);
+            sliderView.center = CGPointMake(sliderCenterX, sliderView.center.y);
             [self setvalueLineview];
             
         } completion:^(BOOL finished) {
             if (finished) {
-                if ([self.silderViewDelegate respondsToSelector:@selector(selectSilderViewWithLeve:)]) {
-                    [self.silderViewDelegate selectSilderViewWithLeve:leve];
+                if (sliderView == self.sliderView) {
+                    if ([self.silderViewDelegate respondsToSelector:@selector(silderViewValuesChangeWithMinleve:silderView:)]) {
+                        [self.silderViewDelegate silderViewValuesChangeWithMinleve:leve silderView:self];
+                    }
+                }
+                else if (sliderView == self.sliderViewMax) {
+                    if ([self.silderViewDelegate respondsToSelector:@selector(silderViewValuesChangeWithMaxleve:silderView:)]) {
+                        [self.silderViewDelegate silderViewValuesChangeWithMaxleve:leve silderView:self];
+                    }
                 }
             }
         }];
     }
     else {
         
-        self.sliderImageView.center = CGPointMake(sliderCenterX, self.sliderImageView.center.y);
+        sliderView.center = CGPointMake(sliderCenterX, self.sliderView.center.y);
         [self setvalueLineview];
-        if ([self.silderViewDelegate respondsToSelector:@selector(selectSilderViewWithLeve:)]) {
-            [self.silderViewDelegate selectSilderViewWithLeve:leve];
+        if (sliderView == self.sliderView) {
+            if ([self.silderViewDelegate respondsToSelector:@selector(silderViewValuesChangeWithMinleve:silderView:)]) {
+                [self.silderViewDelegate silderViewValuesChangeWithMinleve:leve silderView:self];
+            }
         }
+        else if (sliderView == self.sliderViewMax) {
+            if ([self.silderViewDelegate respondsToSelector:@selector(silderViewValuesChangeWithMaxleve:silderView:)]) {
+                [self.silderViewDelegate silderViewValuesChangeWithMaxleve:leve silderView:self];
+            }
+        }
+        
     }
     
     
@@ -177,38 +236,76 @@ static CGFloat const BothSidesInterval = 15;
 
 -(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     
-    NSInteger currentLeve = [self getCurrentLevelWithTouch:touches];
-    [self movePointImageView:currentLeve animation:YES];
+    if (self.isOpenClickSlide) {
+        NSInteger currentLeve = [self getCurrentLevelWithTouch:touches];
+        [self moveToPointImageView:currentLeve animation:YES sliderView:self.sliderView];
+    }
     
 }
 
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     
-    UITouch *touch = [touches anyObject];
-    CGPoint location = [touch locationInView:self];
-    
-    if (location.x <= 0) {
-        location.x = 0;
+    if (self.isOpenClickSlide) {
+        UITouch *touch = [touches anyObject];
+        CGPoint location = [touch locationInView:self];
+        
+        if (location.x <= 0) {
+            location.x = 0;
+        }
+        
+        if (location.x >= self.frame.size.width) {
+            location.x = self.frame.size.width;
+        }
+        
+        CGPoint point = CGPointMake(location.x, self.sliderView.center.y);
+        self.sliderView.center = point;
+        
+        [self setvalueLineview];
     }
-    
-    if (location.x >= self.frame.size.width) {
-        location.x = self.frame.size.width;
-    }
-    
-    CGPoint point = CGPointMake(location.x, self.sliderImageView.center.y);
-    self.sliderImageView.center = point;
-    
-    [self setvalueLineview];
+
     
 }
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
     
-    NSInteger currentLeve = [self getCurrentLevelWithTouch:touches];
-    [self movePointImageView:currentLeve animation:YES];
+    if (self.isOpenClickSlide) {
+        NSInteger currentLeve = [self getCurrentLevelWithTouch:touches];
+        [self moveToPointImageView:currentLeve animation:YES sliderView:self.sliderView];
+    }
 
 }
+
+#pragma mark - handleTableviewCellLongPressed
+- (void)handleTableviewCellLongPressed:(UILongPressGestureRecognizer *)gestureRecognizer {
+    
+    CGPoint point = [gestureRecognizer locationInView:gestureRecognizer.view.superview];
+    
+    
+    NSInteger currentLeve = [self getCurrentLevel:point.x];
+    //滑动左滑块
+    if (gestureRecognizer.view == self.sliderView) {
+        //2个滑块
+        if (self.sliderViewMax.hidden == NO) {
+            //当前右滑块的等级
+            NSInteger currentRightSliderLeve = [self getCurrentLevel:self.sliderViewMax.center.x];
+            if (currentLeve + MinimumLevelBetweenSliders >= currentRightSliderLeve) {
+                currentLeve = currentRightSliderLeve - MinimumLevelBetweenSliders;
+            }
+        }
+        [self moveToPointImageView:currentLeve animation:NO sliderView:self.sliderView];
+    }
+    else if (gestureRecognizer.view == self.sliderViewMax) {
+        //当前左滑块的等级
+        NSInteger currentLeftSliderLeve = [self getCurrentLevel:self.sliderView.center.x];
+        if (currentLeve - MinimumLevelBetweenSliders <= currentLeftSliderLeve) {
+            currentLeve = currentLeftSliderLeve + MinimumLevelBetweenSliders;
+        }
+        [self moveToPointImageView:currentLeve animation:NO sliderView:self.sliderViewMax];
+        
+    }
+}
+
 
 
 /**
@@ -221,16 +318,22 @@ static CGFloat const BothSidesInterval = 15;
     CGPoint location = [touch locationInView:self];
     
     CGFloat touchMoveX = location.x ;
-    CGFloat originX = self.selectedBgColorImageView.frame.origin.x + BothSidesInterval;
     
-    //松手最大
-    if (touchMoveX >= self.frame.size.width) {
-        return _allLevel;
-    }
+    return [self getCurrentLevel:touchMoveX];
     
-    //松手最小
+}
+
+- (NSInteger)getCurrentLevel:(CGFloat)touchMoveX {
+    
+    CGFloat originX = BothSidesInterval;
+    //最小
     if (touchMoveX <= 0) {
         return 1;
+    }
+    
+    //最大
+    if (touchMoveX > originX + _unitLenght * (_allLevel - 1) * 2 + 1) {
+        return _allLevel;
     }
     
     for (int i = 0; i < _allLevel; i++) {
@@ -247,27 +350,31 @@ static CGFloat const BothSidesInterval = 15;
     return 1;
 }
 
+//刷新UI
 - (void)setvalueLineview {
     
-    CGFloat sliderDistance = self.sliderImageView.center.x;
+    CGFloat leftSliderDistance = self.sliderView.center.x;
     
-    self.selectedBgColorImageView.frame = CGRectMake(0, self.selectedBgColorImageView.frame.origin.y, sliderDistance, self.selectedBgColorImageView.frame.size.height);
+    self.leftSelectedBgColorImageView.frame = CGRectMake(0, self.leftSelectedBgColorImageView.frame.origin.y, leftSliderDistance, self.leftSelectedBgColorImageView.frame.size.height);
     
+    CGFloat rightSliderDistance = self.frame.size.width - self.sliderViewMax.center.x;
     
-    self.notSelectedBgColorImageView.frame = CGRectMake(sliderDistance, self.notSelectedBgColorImageView.frame.origin.y, self.frame.size.width - sliderDistance, self.notSelectedBgColorImageView.frame.size.height);
+    self.rightSelectedBgColorImageView.frame = CGRectMake(self.sliderViewMax.center.x, self.rightSelectedBgColorImageView.frame.origin.y, rightSliderDistance, self.rightSelectedBgColorImageView.frame.size.height);
+    
     
 }
 
-- (void)addPointImageView:(NSInteger)allLevels type:(YUSilderViewType)type {
+//增加刻度点
+- (void)addPointImageView:(NSInteger)allLevels isShowPoint:(BOOL)isShowPoint {
     for (int i = 0; i < allLevels; i++) {
         UIImageView * pointImageView = [[UIImageView alloc] init];
 
         CGFloat pointSizeWidth = NonePointSizeWidth;
-        if (type == YUSilderViewTypeLong) {
+        if (!isShowPoint) {
             pointSizeWidth = 1;
             pointImageView.backgroundColor = [UIColor clearColor];
         }
-        else if (type == YUSilderViewTypeNone) {
+        else {
             pointImageView.backgroundColor = [UIColor yellowColor];
         }
         //设置pointImageView的size
@@ -277,9 +384,9 @@ static CGFloat const BothSidesInterval = 15;
         //添加到数组中
         [self.pointViewLists addObject:pointImageView];
         
-        if (type == YUSilderViewTypeNone) {
+        if (isShowPoint) {
             //在背景色上面
-            [self insertSubview:pointImageView aboveSubview:self.notSelectedBgColorImageView];
+            [self insertSubview:pointImageView aboveSubview:self.leftSelectedBgColorImageView];
         }
     }
 }
@@ -290,20 +397,21 @@ static CGFloat const BothSidesInterval = 15;
 
 
 
-- (UIImageView *)selectedBgColorImageView {
-    if (_selectedBgColorImageView == nil) {
-        _selectedBgColorImageView = [[UIImageView alloc] init];
-        _selectedBgColorImageView.backgroundColor = [UIColor grayColor];
+- (UIImageView *)leftSelectedBgColorImageView {
+    if (_leftSelectedBgColorImageView == nil) {
+        _leftSelectedBgColorImageView = [[UIImageView alloc] init];
+        _leftSelectedBgColorImageView.backgroundColor = [UIColor grayColor];
     }
-    return _selectedBgColorImageView;
+    return _leftSelectedBgColorImageView;
 }
 
-- (UIImageView *)notSelectedBgColorImageView {
-    if (_notSelectedBgColorImageView == nil) {
-        _notSelectedBgColorImageView = [[UIImageView alloc] init];
-        _notSelectedBgColorImageView.backgroundColor = [UIColor blackColor];
+- (UIImageView *)rightSelectedBgColorImageView {
+    if (_rightSelectedBgColorImageView == nil) {
+        _rightSelectedBgColorImageView = [[UIImageView alloc] init];
+        _rightSelectedBgColorImageView.backgroundColor = [UIColor blueColor];
+        _rightSelectedBgColorImageView.hidden = YES;
     }
-    return _notSelectedBgColorImageView;
+    return _rightSelectedBgColorImageView;
 }
 
 - (NSMutableArray *)pointViewLists {
@@ -314,15 +422,72 @@ static CGFloat const BothSidesInterval = 15;
 }
 
 
+- (UIView *)sliderView {
+    if (_sliderView == nil) {
+        _sliderView = [[UIView alloc] init];
+        _sliderView.backgroundColor = [UIColor clearColor];
+        
+        _sliderView.userInteractionEnabled = YES;
+        UILongPressGestureRecognizer *longPress =
+        [[UILongPressGestureRecognizer alloc] initWithTarget:self
+                                                      action:@selector(handleTableviewCellLongPressed:)];
+        //代理
+        longPress.delegate = self;
+        longPress.minimumPressDuration = 0.001;
+        [_sliderView addGestureRecognizer:longPress];
+    }
+    return _sliderView;
+}
+
+
+- (UIView *)sliderViewMax {
+    if (_sliderViewMax == nil) {
+        _sliderViewMax = [[UIView alloc] init];
+        _sliderViewMax.backgroundColor = [UIColor clearColor];
+        _sliderViewMax.hidden = YES;
+        
+        _sliderViewMax.userInteractionEnabled = YES;
+        UILongPressGestureRecognizer *longPress =
+        [[UILongPressGestureRecognizer alloc] initWithTarget:self
+                                                      action:@selector(handleTableviewCellLongPressed:)];
+        //代理
+        longPress.delegate = self;
+        longPress.minimumPressDuration = 0.001;
+        [_sliderViewMax addGestureRecognizer:longPress];
+        
+    }
+    return _sliderViewMax;
+}
+
 - (UIImageView *)sliderImageView {
     if (_sliderImageView == nil) {
         _sliderImageView = [[UIImageView alloc] init];
-        _sliderImageView.backgroundColor = [UIColor blueColor];
+        _sliderImageView.backgroundColor = [UIColor redColor];
+        _sliderImageView.frame = CGRectMake(0, 0, SliderWidth, SliderWidth);
+        _sliderImageView.layer.cornerRadius = SliderWidth/2;
     }
     return _sliderImageView;
 }
 
+- (UIImageView *)sliderMaxImageView {
+    if (_sliderMaxImageView == nil) {
+        _sliderMaxImageView = [[UIImageView alloc] init];
+        _sliderMaxImageView.backgroundColor = [UIColor redColor];
+        _sliderMaxImageView.frame = CGRectMake(0, 0, SliderWidth, SliderWidth);
+        _sliderMaxImageView.layer.cornerRadius = SliderWidth/2;
+    }
+    return _sliderMaxImageView;
+}
 
+
+- (UIView *)longTypeLineView {
+    if (_longTypeLineView == nil) {
+        _longTypeLineView = [[UIView alloc] init];
+        _longTypeLineView.backgroundColor = [UIColor yellowColor];
+        _longTypeLineView.hidden = YES;
+    }
+    return _longTypeLineView;
+}
 
 
 

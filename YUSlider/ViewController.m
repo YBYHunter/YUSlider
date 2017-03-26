@@ -17,7 +17,9 @@
 
 @property (nonatomic,strong) YUSilderView * silderViewDouble;
 
-@property (nonatomic,strong) UIButton * startBut;
+@property (nonatomic,strong) UILabel * minLab;
+
+@property (nonatomic,strong) UILabel * maxLab;
 
 @end
 
@@ -31,63 +33,75 @@
     [self.view addSubview:self.silderViewBig];
     [self.view addSubview:self.silderViewDouble];
     
-    [self.view addSubview:self.startBut];
+    [self.view addSubview:self.minLab];
+    [self.view addSubview:self.maxLab];
 }
 
-- (void)startButAction {
-    [self.silderView movePointImageView:arc4random()%7 + 1 animation:YES];
-}
 
 
 #pragma mark - getter
 
 - (YUSilderView *)silderViewBig {
     if (_silderViewBig == nil) {
-        _silderViewBig = [[YUSilderView alloc] initWithFrame:CGRectMake(10, 200, 200, 64)];
+        _silderViewBig = [[YUSilderView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250)/2, 200, 250, 64)];
         _silderViewBig.silderViewDelegate = self;
-        [_silderViewBig setupSilderViewWithAllLevels:100 initialLevel:2 type:YUSilderViewTypeLong];
+        [_silderViewBig setupSilderViewWithAllLevels:100 isShowPoint:NO initialLevel:2];
+        _silderViewBig.isOpenClickSlide = NO;
     }
     return _silderViewBig;
 }
 
 - (YUSilderView *)silderViewDouble {
     if (_silderViewDouble == nil) {
-        _silderViewDouble = [[YUSilderView alloc] initWithFrame:CGRectMake(10, 300, 200, 64)];
+        _silderViewDouble = [[YUSilderView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250)/2, 300, 250, 64)];
         _silderViewDouble.silderViewDelegate = self;
-        [_silderViewDouble setupSilderViewWithAllLevels:3 initialLevel:2 type:YUSilderViewTypeDouble];
+        [_silderViewDouble setupSilderViewWithAllLevels:100 isShowPoint:NO initialLevel:2 maxInitialLevel:99];
     }
     return _silderViewDouble;
 }
 
 - (YUSilderView *)silderView {
     if (_silderView == nil) {
-        _silderView = [[YUSilderView alloc] initWithFrame:CGRectMake(10, 100, 200, 64)];
+        _silderView = [[YUSilderView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250)/2, 100, 250, 64)];
         _silderView.silderViewDelegate = self;
-        [_silderView setupSilderViewWithAllLevels:5 initialLevel:2 type:YUSilderViewTypeNone];
+        [_silderView setupSilderViewWithAllLevels:7 isShowPoint:YES initialLevel:2];
     }
     return _silderView;
 }
 
-- (UIButton *)startBut {
-    if (_startBut == nil) {
-        _startBut = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_startBut setTitle:@"动" forState:UIControlStateNormal];
-        _startBut.frame = CGRectMake(10, 400, 44, 44);
-        [_startBut addTarget:self action:@selector(startButAction) forControlEvents:UIControlEventTouchUpInside];
-        _startBut.backgroundColor = [UIColor redColor];
+- (UILabel *)minLab {
+    if (_minLab == nil) {
+        _minLab = [[UILabel alloc] init];
+        _minLab.frame = CGRectMake((self.view.frame.size.width - 100)/2, 400, 100, 44);
+        _minLab.textColor = [UIColor blackColor];
+        _minLab.text = @"最小值:**";
     }
-    return _startBut;
+    return _minLab;
+}
+
+- (UILabel *)maxLab {
+    if (_maxLab == nil) {
+        _maxLab = [[UILabel alloc] init];
+        _maxLab.frame = CGRectMake((self.view.frame.size.width - 100)/2, 444, 100, 44);
+        _maxLab.textColor = [UIColor blackColor];
+        _maxLab.text = @"最大值:**";
+    }
+    return _maxLab;
 }
 
 
 #pragma mark - YUSilderViewDelegate
 
-- (void)selectSilderViewWithLeve:(NSInteger)leve {
-//    NSLog(@" leve - %ld",(long)leve);
+- (void)silderViewValuesChangeWithMinleve:(NSInteger)minLeve silderView:(UIView *)silderView {
+    
+    NSLog(@" minLeve - %ld",(long)minLeve);
+    self.minLab.text = [NSString stringWithFormat:@"最小值：%ld",(long)minLeve];
 }
 
-
-
+- (void)silderViewValuesChangeWithMaxleve:(NSInteger)maxLeve silderView:(UIView *)silderView {
+    NSLog(@" maxLeve - %ld",(long)maxLeve);
+    self.maxLab.text = [NSString stringWithFormat:@"最大值：%ld",(long)maxLeve];
+}
 
 
 
