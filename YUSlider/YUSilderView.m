@@ -162,15 +162,14 @@ static CGFloat const MinimumLevelBetweenSliders = 10;
     dispatch_async(queue, ^{
         
         dispatch_apply(self.pointViewLists.count, dispatch_get_global_queue(0, 0), ^(size_t index) {
-            UIImageView * pointImageView = self.pointViewLists[index];
-            NSInteger num = pointImageView.tag - 3000;
-            CGFloat pointWidth = pointImageView.frame.size.width;
-            CGFloat pointHeight = pointImageView.frame.size.height;
-            CGFloat pointX = num * (_unitLenght * 2) + BothSidesInterval;
-            
-            CGRect rect = CGRectMake(pointX, (self.frame.size.height - pointHeight)/2, pointWidth, pointHeight);
-            
             dispatch_async(dispatch_get_main_queue(), ^{
+                UIImageView * pointImageView = self.pointViewLists[index];
+                NSInteger num = pointImageView.tag - 3000;
+                CGFloat pointWidth = pointImageView.frame.size.width;
+                CGFloat pointHeight = pointImageView.frame.size.height;
+                CGFloat pointX = num * (_unitLenght * 2) + BothSidesInterval;
+                
+                CGRect rect = CGRectMake(pointX, (self.frame.size.height - pointHeight)/2, pointWidth, pointHeight);
                 pointImageView.frame = rect;
             });
         });
