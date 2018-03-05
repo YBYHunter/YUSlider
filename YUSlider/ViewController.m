@@ -38,6 +38,20 @@
 }
 
 
+#pragma mark - YUSilderViewDelegate
+
+- (void)silderViewValuesChangeWithMinleve:(NSInteger)minLeve silderView:(UIView *)silderView {
+    
+    NSLog(@" minLeve - %ld",(long)minLeve);
+    self.minLab.text = [NSString stringWithFormat:@"最小值：%ld",(long)minLeve];
+}
+
+- (void)silderViewValuesChangeWithMaxleve:(NSInteger)maxLeve silderView:(UIView *)silderView {
+    NSLog(@" maxLeve - %ld",(long)maxLeve);
+    self.maxLab.text = [NSString stringWithFormat:@"最大值：%ld",(long)maxLeve];
+}
+
+
 
 #pragma mark - getter
 
@@ -90,18 +104,6 @@
 }
 
 
-#pragma mark - YUSilderViewDelegate
-
-- (void)silderViewValuesChangeWithMinleve:(NSInteger)minLeve silderView:(UIView *)silderView {
-    
-    NSLog(@" minLeve - %ld",(long)minLeve);
-    self.minLab.text = [NSString stringWithFormat:@"最小值：%ld",(long)minLeve];
-}
-
-- (void)silderViewValuesChangeWithMaxleve:(NSInteger)maxLeve silderView:(UIView *)silderView {
-    NSLog(@" maxLeve - %ld",(long)maxLeve);
-    self.maxLab.text = [NSString stringWithFormat:@"最大值：%ld",(long)maxLeve];
-}
 
 
 

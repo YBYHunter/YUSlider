@@ -212,7 +212,7 @@
 				TargetAttributes = {
 					6BE0A8581E65872F00530394 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = D882YEGCUP;
+						DevelopmentTeam = 24CS4P6F77;
 						ProvisioningStyle = Automatic;
 					};
 					6BE0A8711E65872F00530394 = {
@@ -431,7 +431,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = D882YEGCUP;
+				DEVELOPMENT_TEAM = 24CS4P6F77;
 				INFOPLIST_FILE = YUSlider/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = yu.YUSlider;
@@ -443,7 +443,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = D882YEGCUP;
+				DEVELOPMENT_TEAM = 24CS4P6F77;
 				INFOPLIST_FILE = YUSlider/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = yu.YUSlider;
